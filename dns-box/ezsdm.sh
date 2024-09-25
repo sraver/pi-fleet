@@ -58,6 +58,8 @@ L10n:host
 # Set up Hotspot
 hotspot:hsname=myhs|wifissid=$ssid|wifipassword=$psk|hsenable|type=routed|dhcpmode=none|wlanip=$router
 
+copyfile:from=$assets/galaxy.nmconnection|to=/etc/NetworkManager/system-connections|chown=root:root|chmod=600|mkdirif
+
 # Set up ndm/dnsmasq
 ndm:dhcpserver=dnsmasq|dnsserver=dnsmasq|dobuild|doinstall|importnet=$hostsfile|dhcprange=$net_low_range,$net_high_range|domain=$domain|externaldns=$dns|gateway=$router|myip=$router|hostname=$hostname|dnsfqdn=$fqdn|mxfqdn=$fqdn|timeserver=$timeserver|netdev=$lan_iface|enablesvcs
 
@@ -77,7 +79,7 @@ copydir:from=mullvad_files|to=$home
 EOF
     )  |bash -c "cat >|$plugins_tmp"
 
-$sudo sdm --customize --hostname $hostname --plugin @$plugins_tmp --extend --xmb 2048 --regen-ssh-host-keys --reboot 10 $img
+$sudo sdm --customize --hostname $hostname --plugin @$plugins_tmp --extend --xmb 1024 --regen-ssh-host-keys --reboot 10 $img
 
 rm $plugins_tmp
 

@@ -18,6 +18,10 @@ iptables -P OUTPUT DROP
 iptables -A OUTPUT -o $lan -j ACCEPT
 iptables -A INPUT -i $lan -j ACCEPT
 
+# Allow DNS requests
+iptables -A OUTPUT -o $wan -p udp -m udp --dport 53 -j ACCEPT
+iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT 
+
 # Allow forward from LAN network to WAN
 iptables -A FORWARD -i $lan -o $wan -p icmp -j ACCEPT
 iptables -A FORWARD -i $lan -o $wan -p udp -j ACCEPT

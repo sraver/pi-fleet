@@ -30,6 +30,7 @@ total=$(( ${#list[@]} - 1 ))
 
 [ $option -gt $total ] && errexit "Wrong network number"
 
+bssid=$(echo ${list[$option]} | awk '{print $1}')
 ssid=$(echo ${list[$option]} | awk '{print $2}')
 
 # Ask password
@@ -38,11 +39,9 @@ read -p $'\nPassword for '"\"${ssid}\": " password
 
 # Connect
 
-connect_cmd="sudo nmcli device wifi connect $ssid ifname $iface"
+connect_cmd="sudo nmcli device wifi connect $bssid ifname $iface name $bssid"
 
 [ "$password" == "" ] || connect_cmd="${connect_cmd} password ${password}"
-
-connect_cmd="${connect_cmd} ipv4.ignore-auto-dns yes"
 
 echo # new line
 
