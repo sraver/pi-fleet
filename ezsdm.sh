@@ -15,14 +15,12 @@ img="$1"
 assets="../assets"
 [ -d $assets ] || errexit "? No assets directory"
 
-hostsfile="hostlist.txt"
-[ -f $hostsfile ] || errexit "? No hostslist.txt"
-
 plugins_tmp=$(mktemp -t ".plugins.XXXXXX")
 
 new_user="sha"
+home="/home/$new_user"
 
-router="10.0.0.1"
+router="10.1.0.1"
 hostname="bouncer"
 
 ssid="myhsnet"
@@ -34,8 +32,8 @@ psk="11112222"
 user:deluser=pi
 user:adduser=$new_user
 
-mkdir:dir=/home/$new_user/.ssh|chown=$new_user:$new_user|chmod=700
-copyfile:from=$assets/authorized_keys|to=/home/$new_user/.ssh|chown=$new_user:$new_user|chmod=600|mkdirif
+mkdir:dir=$home/.ssh|chown=$new_user:$new_user|chmod=700
+copyfile:from=$assets/authorized_keys|to=$home/.ssh|chown=$new_user:$new_user|chmod=600|mkdirif
 
 # Packages
 apps:name=tools|apps=vim
@@ -47,8 +45,8 @@ L10n:host
 # Set up Hotspot
 hotspot:hsname=myhs|wifissid=$ssid|wifipassword=$psk|hsenable|type=routed|dhcpmode=none|wlanip=$router
 
-# Copy connections
-copyfile:from=galaxy.nmconnection|to=/etc/NetworkManager/system-connections|chown=root:root|chmod=600|mkdirif
+# Copy default connection
+copyfile:from=$assets/galaxy.nmconnection|to=/etc/NetworkManager/system-connections|chown=root:root|chmod=600|mkdirif
 
 EOF
     )  |bash -c "cat >|$plugins_tmp"
