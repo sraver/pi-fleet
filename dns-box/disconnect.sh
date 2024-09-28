@@ -5,6 +5,6 @@ set -e
 source ifaces.cfg
 
 nmcli device disconnect $wan
-sudo killall openvpn
-sudo ./fw.stop
+sudo killall openvpn 2>/dev/null
+sudo ./fw.clear
 

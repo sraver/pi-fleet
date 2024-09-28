@@ -25,7 +25,7 @@ home="/home/$new_user"
 
 source ifaces.cfg
 
-net="10.0.0"
+net="10.1.0"
 router="${net}.1"
 net_low_range="${net}.10"
 net_high_range="${net}.100"
@@ -36,7 +36,7 @@ dns="9.9.9.9"
 timeserver="129.6.15.28"
 lan_iface=$lan
 
-ssid="myhsnet"
+ssid="gate"
 psk="11112222"
 
 (cat <<EOF
@@ -58,6 +58,7 @@ L10n:host
 # Set up Hotspot
 hotspot:hsname=myhs|wifissid=$ssid|wifipassword=$psk|hsenable|type=routed|dhcpmode=none|wlanip=$router
 
+# Auxiliar default connection
 copyfile:from=$assets/galaxy.nmconnection|to=/etc/NetworkManager/system-connections|chown=root:root|chmod=600|mkdirif
 
 # Set up ndm/dnsmasq
@@ -68,8 +69,9 @@ copyfile:from=ifaces.cfg|to=$home|chown=$new_user:$new_user|chmod=600
 copyfile:from=country_codes.txt|to=$home|chown=$new_user:$new_user|chmod=600
 copyfile:from=connect.sh|to=$home|chown=$new_user:$new_user|chmod=700
 copyfile:from=disconnect.sh|to=$home|chown=$new_user:$new_user|chmod=700
-copyfile:from=iptables_w_vpn.sh|to=$home|chown=$new_user:$new_user|chmod=700
-copyfile:from=iptables_wo_vpn.sh|to=$home|chown=$new_user:$new_user|chmod=700
+copyfile:from=fw.vpn|to=$home|chown=$new_user:$new_user|chmod=700
+copyfile:from=fw.direct|to=$home|chown=$new_user:$new_user|chmod=700
+copyfile:from=fw.clear|to=$home|chown=$new_user:$new_user|chmod=700
 copyfile:from=vpn.sh|to=$home|chown=$new_user:$new_user|chmod=700
 copyfile:from=route.sh|to=$home|chown=$new_user:$new_user|chmod=700
 
