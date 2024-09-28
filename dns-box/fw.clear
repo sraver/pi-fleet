@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# https://www.cyberciti.biz/tips/linux-iptables-how-to-flush-all-rules.html
+
 echo "Stopping IPv4 firewall and allowing everyone..."
 
 ipt="/sbin/iptables"
