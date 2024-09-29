@@ -63,6 +63,11 @@ At this point, the downstream is already active, and it will always be after boo
 
 At any time, you can run `./route.sh` to decide if you want to use VPN or not.
 
+### Captive portals
+
+Some networks have a captive portal and force you to put in a password in a login page, or click some button.
+For that, `lynx` can be used. Since it has JS support, it enables to render those pages, normally rather simply.
+
 ## Known issues
 
 ### No AP active after first boot
@@ -79,15 +84,6 @@ auto.
 
 If you `./connect.sh` and use an already known AP, it still asks you for password. Needs to check the current known to
 avoid that.
-
-### Captive portal
-
-Some networks have captive portal, and force you to put a password in a login page, or click some button. Since no X is
-available, this cannot be done.  
-Did consider using the full RaspiOS image, and VNC into the box in this cases, but I would like to avoid that, and I
-think `lynx` could be a better approach, since it has JS support, and it could probably render the captive portal, and
-allow logging in.
-
 
 
 

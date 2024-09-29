@@ -49,7 +49,7 @@ mkdir:dir=$home/.ssh|chown=$new_user:$new_user|chmod=700
 copyfile:from=$assets/authorized_keys|to=$home/.ssh|chown=$new_user:$new_user|chmod=600|mkdirif
 
 # Packages
-apps:name=tools|apps=vim,iptables,openvpn
+apps:name=tools|apps=vim,iptables,openvpn,lynx
 
 # Pi things
 disables:piwiz
