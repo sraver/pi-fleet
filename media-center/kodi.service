@@ -1,0 +1,16 @@
+[Unit] 
+Description=kodi 
+After=network.target 
+Wants=network.target 
+
+[Service] 
+User=sha
+Group=sha 
+ExecStart=/usr/bin/kodi  
+Restart=on-failure 
+RestartSec=10s 
+StandardOutput=journal 
+StandardError=journal 
+
+[Install] 
+WantedBy=multi-user.target
