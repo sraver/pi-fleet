@@ -1,0 +1,9 @@
+# Appended to /etc/fstab at first boot by the sdm `system` plugin.
+#
+# The disk is found by ext4 LABEL, not UUID, so this image is generic: prepare
+# any drive with `prepare-disk.sh` (which labels it "mediadata") and it mounts.
+#
+# nofail                      -> the Pi still boots if the drive is absent
+# x-systemd.device-timeout=30 -> don't hang 90s waiting for a slow USB enclosure
+# noatime                     -> no pointless metadata writes on every read
+LABEL=mediadata  /mnt/data  ext4  defaults,noatime,nofail,x-systemd.device-timeout=30  0  2

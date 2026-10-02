@@ -1,0 +1,23 @@
+[Unit]
+Description=Media center docker stack (Prowlarr/Sonarr/Radarr/qBittorrent/Jellyfin)
+After=docker.service network-online.target
+Requires=docker.service
+Wants=network-online.target
+# Refuse to start unless the external SSD is actually mounted
+RequiresMountsFor=/mnt/data
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/media-center
+EnvironmentFile=/opt/media-center/.env
+ExecStartPre=/opt/media-center/bootstrap-data.sh
+ExecStart=/usr/bin/docker compose up -d --remove-orphans
+ExecStop=/usr/bin/docker compose down
+# First boot pulls ~2GB of images over the network; don't give up early
+TimeoutStartSec=1800
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

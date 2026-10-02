@@ -14,6 +14,7 @@ img="$1"
 
 assets="../assets"
 [ -d $assets ] || errexit "? No assets directory"
+[ -f $assets/authorized_keys ] || errexit "? No authorized_keys in $assets"
 
 hostsfile="hostlist.txt"
 [ -f $hostsfile ] || errexit "? No hostslist.txt"

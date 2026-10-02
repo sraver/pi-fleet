@@ -14,6 +14,7 @@ img="$1"
 
 assets="../assets"
 [ -d $assets ] || errexit "? No assets directory"
+[ -f $assets/authorized_keys ] || errexit "? No authorized_keys in $assets"
 
 plugins_tmp=$(mktemp -t ".plugins.XXXXXX")
 

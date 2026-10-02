@@ -1,0 +1,140 @@
+# Media center stack: Prowlarr -> Sonarr/Radarr -> qBittorrent -> Jellyfin
+#
+# Every container sees the external SSD at the SAME path (/data), so the path
+# qBittorrent reports for a finished download is the exact path Sonarr/Radarr
+# resolve. That is what makes hardlinked imports work instead of full copies.
+#
+#   ${DATA_ROOT}/appdata/<app>  -> /config   per-app config + SQLite databases
+#   ${DATA_ROOT}/downloads      -> /data/downloads
+#   ${DATA_ROOT}/media/{tv,movies} -> /data/media/{tv,movies}
+#
+# All mounts are long-form binds with create_host_path=false. Docker's default
+# is to CREATE a missing bind source, which would be silent disaster here: the
+# containers have restart:unless-stopped, so the Docker daemon starts them at
+# boot on its own, bypassing the systemd unit's RequiresMountsFor guard. If the
+# SSD ever fails to mount, that default would have the apps build fresh empty
+# databases on the SD card and qBittorrent download to it until it fills.
+# With create_host_path=false the containers simply refuse to start instead.
+
+name: media-center
+
+x-env: &env
+  PUID: ${PUID:-1000}
+  PGID: ${PGID:-1000}
+  TZ: ${TZ:-Etc/UTC}
+
+x-svc: &svc
+  restart: unless-stopped
+
+# Applied to every bind mount below
+x-bind: &bind
+  type: bind
+  bind:
+    create_host_path: false
+
+services:
+
+  # Indexer manager. Configure trackers here once; it pushes them to Sonarr and
+  # Radarr automatically (this is the part Jackett made you do by hand).
+  prowlarr:
+    <<: *svc
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      <<: *env
+    volumes:
+      - <<: *bind
+        source: ${DATA_ROOT}/appdata/prowlarr
+        target: /config
+    ports:
+      - "${PROWLARR_PORT:-9696}:9696"
+
+  # TV shows
+  sonarr:
+    <<: *svc
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      <<: *env
+    volumes:
+      - <<: *bind
+        source: ${DATA_ROOT}/appdata/sonarr
+        target: /config
+      # One single mount, not separate ones for downloads and media: Sonarr
+      # only hardlinks when both live under the same mount point.
+      - <<: *bind
+        source: ${DATA_ROOT}
+        target: /data
+    ports:
+      - "${SONARR_PORT:-8989}:8989"
+    depends_on:
+      - prowlarr
+      - qbittorrent
+
+  # Movies
+  radarr:
+    <<: *svc
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      <<: *env
+    volumes:
+      - <<: *bind
+        source: ${DATA_ROOT}/appdata/radarr
+        target: /config
+      - <<: *bind
+        source: ${DATA_ROOT}
+        target: /data
+    ports:
+      - "${RADARR_PORT:-7878}:7878"
+    depends_on:
+      - prowlarr
+      - qbittorrent
+
+  # Download client. Never expose this web UI to the internet: it can run
+  # arbitrary scripts on download completion.
+  qbittorrent:
+    <<: *svc
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      <<: *env
+      WEBUI_PORT: ${QBITTORRENT_PORT:-8080}
+      TORRENTING_PORT: ${QBITTORRENT_PEER_PORT:-6881}
+    volumes:
+      - <<: *bind
+        source: ${DATA_ROOT}/appdata/qbittorrent
+        target: /config
+      - <<: *bind
+        source: ${DATA_ROOT}
+        target: /data
+    ports:
+      - "${QBITTORRENT_PORT:-8080}:${QBITTORRENT_PORT:-8080}"
+      - "${QBITTORRENT_PEER_PORT:-6881}:${QBITTORRENT_PEER_PORT:-6881}/tcp"
+      - "${QBITTORRENT_PEER_PORT:-6881}:${QBITTORRENT_PEER_PORT:-6881}/udp"
+
+  # Streaming frontend. Media is mounted read-only so a Jellyfin compromise
+  # cannot delete the library; drop read_only if you want to delete from the UI.
+  jellyfin:
+    <<: *svc
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      <<: *env
+    volumes:
+      - <<: *bind
+        source: ${DATA_ROOT}/appdata/jellyfin
+        target: /config
+      - <<: *bind
+        source: ${DATA_ROOT}/appdata/jellyfin-cache
+        target: /cache
+      - <<: *bind
+        source: ${DATA_ROOT}/media
+        target: /data/media
+        read_only: true
+    ports:
+      - "${JELLYFIN_PORT:-8096}:8096"
+      - "7359:7359/udp"   # client auto-discovery on the LAN
+    # No devices:/group_add for hardware transcoding on purpose. The Pi 5 has no
+    # hardware video encoder, so leave HW acceleration OFF in the Jellyfin
+    # dashboard and rely on direct play. See README.
